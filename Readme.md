@@ -1,12 +1,14 @@
-Please make sure you have `make` and `cmake` installed
+Please make sure you have `gcc`, `make` and `autotools` installed
 
-To build the code and test, please:
+Build cpputest first:
+```shell
+cd cpputest
+autoreconf . -i
+./configure
+make tdd
 ```
-    mkdir build
-    cd build
-    cmake ..
-    make
-```
-To run the code, please execute `./main/cpp_otp`
 
-To run the test, please execute `./test/cpp_otp_test`
+Build and run the test:
+```shell
+make all
+```

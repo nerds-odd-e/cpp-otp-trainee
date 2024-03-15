@@ -1,14 +1,13 @@
-#include "gtest/gtest.h"
+#include "CppUTest/TestHarness.h"
 #include "../main/AuthenticationService.h"
 
-namespace {
+TEST_GROUP(AuthenticationService) {
+};
 
-    TEST(AuthenticationService, IsValid) {
-        AuthenticationService target;
+TEST(AuthenticationService, IsValid) {
+    AuthenticationService target;
 
-        bool actual = target.isValid("joey", "91000000");
+    bool actual = target.isValid("joey", "91000000");
 
-        ASSERT_TRUE(actual);
-    }
-
+    CHECK_TRUE(actual);
 }

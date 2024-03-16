@@ -7,10 +7,10 @@ COMPONENT_NAME = otp
 #--- Inputs ----#
 PROJECT_HOME_DIR = .
 CPPUTEST_HOME = $(PROJECT_HOME_DIR)/cpputest
-#ifeq "$(CPPUTEST_HOME)" ""
-#$(error The environment variable CPPUTEST_HOME is not set. \
-#Set it to where cpputest is installed)
-#endif
+ifeq "$(CPPUTEST_HOME)" ""
+$(error The environment variable CPPUTEST_HOME is not set. \
+Set it to where cpputest is installed)
+endif
 
 # --- SRC_FILES and SRC_DIRS ---
 # Production code files are compiled and put into
@@ -56,6 +56,7 @@ CPPUTEST_USE_EXTENSIONS = Y
 # containing directory
 INCLUDE_DIRS += $(CPPUTEST_HOME)/include
 INCLUDE_DIRS += $(CPPUTEST_HOME)/include/Platforms/Gcc
+INCLUDE_DIRS += $(CPPUTEST_HOME)
 INCLUDE_DIRS += main
 
 
@@ -106,21 +107,22 @@ endif
 
 CPPUTEST_WARNINGFLAGS += -Wall
 CPPUTEST_WARNINGFLAGS += -Werror
-CPPUTEST_WARNINGFLAGS += -Wfatal-errors
+#CPPUTEST_WARNINGFLAGS += -Wfatal-errors
 CPPUTEST_WARNINGFLAGS += -Wswitch-default
 CPPUTEST_WARNINGFLAGS += -Wno-format-nonliteral
-CPPUTEST_WARNINGFLAGS += -Wno-sign-conversion
-CPPUTEST_WARNINGFLAGS += -Wno-pedantic
+#CPPUTEST_WARNINGFLAGS += -Wno-sign-conversion
+#CPPUTEST_WARNINGFLAGS += -Wno-pedantic
 CPPUTEST_WARNINGFLAGS += -Wno-shadow
-CPPUTEST_WARNINGFLAGS += -Wno-missing-field-initializers
+#CPPUTEST_WARNINGFLAGS += -Wno-missing-field-initializers
 CPPUTEST_WARNINGFLAGS += -Wno-unused-parameter
 CPPUTEST_CFLAGS += -pedantic
 CPPUTEST_CFLAGS += -Wno-missing-prototypes
 CPPUTEST_CFLAGS += -Wno-strict-prototypes
-CPPUTEST_CXXFLAGS += -Wno-c++14-compat
-CPPUTEST_CXXFLAGS += --std=c++11
-CPPUTEST_CXXFLAGS += -Wno-c++98-compat-pedantic
-CPPUTEST_CXXFLAGS += -Wno-c++98-compat
+#CPPUTEST_CXXFLAGS += -Wno-c++14-compat
+#CPPUTEST_CXXFLAGS += --std=c++11
+#CPPUTEST_CXXFLAGS += -Wno-c++98-compat-pedantic
+#CPPUTEST_CXXFLAGS += -Wno-c++98-compat
+CPPUTEST_CPPFLAGS += -DHAVE_CONFIG_H
 
 # Coloroze output
 CPPUTEST_EXE_FLAGS += -c

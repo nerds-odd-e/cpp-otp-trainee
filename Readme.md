@@ -3,8 +3,7 @@ Please make sure you have `gcc`, `make` and `autotools` installed
 Build cpputest first:
 ```shell
 cd cpputest
-autoreconf . -i
-./configure
+./configure --disable-longlong
 make tdd
 ```
 

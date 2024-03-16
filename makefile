@@ -134,3 +134,19 @@ CPPUTEST_EXE_FLAGS += -c
 # Look at $(CPPUTEST_HOME)/build/MakefileWorker.mk for more controls
 
 include $(CPPUTEST_HOME)/build/MakefileWorker.mk
+
+ifndef TARGET
+	TARGET = $(COMPONENT_NAME)
+endif
+
+DEPS = $(PRODUCTION_CODE_START) $(TARGET_LIB) $(USER_LIBS) $(PRODUCTION_CODE_END) $(STDLIB_CODE_START)
+
+$(TARGET): $(DEPS)
+	@echo Linking $@
+	$(SILENCE)$(CXX) -o $@ $^ $(LD_LIBRARIES) $(LDFLAGS)
+
+.PHONY: main
+main: $(TARGET)
+	@echo Running $@
+	$(SILENCE)./$(TARGET)
+

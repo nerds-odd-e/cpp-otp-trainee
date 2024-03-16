@@ -11,3 +11,8 @@ Build and run the test:
 ```shell
 make all
 ```
+
+Build and run the program:
+```shell
+make main
+```

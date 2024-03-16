@@ -1,6 +1,7 @@
 
 AC_PREREQ([2.68])
-AC_INIT([CppUTest], [3.8], [https://github.com/cpputest/cpputest])
+AC_INIT([CppUTest], [4.0], [https://github.com/cpputest/cpputest])
+AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([src/CppUTest/Utest.cpp])
 AC_CONFIG_HEADERS([config.h])
@@ -33,6 +34,7 @@ AM_SILENT_RULES
 
 ACX_PTHREAD([LIBS="$PTHREAD_LIBS $LIBS"])
 
+AX_COMPILER_VERSION
 # This additional -lpthread was added due to a bug on gcc for MacOSX: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42159
 # According to the bug report, a workaround is to link -lpthread. Even the ACX_PTHREAD doesn't do that, so we add an
 # additional check if that it possible, and if it is, then we link pthread
@@ -60,7 +62,7 @@ AC_TYPE_LONG_LONG_INT
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([gettimeofday memset strstr])
+AC_CHECK_FUNCS([gettimeofday memset strstr strdup pthread_mutex_lock])
 
 AC_CHECK_PROG([CPPUTEST_HAS_GCC], [gcc], [yes], [no])
 AC_CHECK_PROG([CPPUTEST_HAS_CLANG], [clang], [yes], [no])
@@ -81,24 +83,63 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CWARNIN
 CFLAGS="$saved_cflags"
 fi
 
-#####################################################################################
-##### C++ 11 checks
-
-### Checking for Standard C++ 11 compiler flags
 AC_LANG_PUSH([C++])
+#####################################################################################
+##### C++ checks
+
+# FLag -std=c++1y
+CXXFLAGS="-Werror -std=c++1y"
+AC_MSG_CHECKING([whether CXX supports -std=c++1y])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP14FLAG="-std=c++1y" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+# FLag std=c++14
+CXXFLAGS="-Werror -std=c++14"
+AC_MSG_CHECKING([whether CXX supports -std=c++14])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP14FLAG="-std=c++14" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+# FLag std=c++17
+CXXFLAGS="-Werror -std=c++17"
+AC_MSG_CHECKING([whether CXX supports -std=c++17])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP17FLAG="-std=c++17" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+# FLag std=c++20
+CXXFLAGS="-Werror -std=c++2a"
+AC_MSG_CHECKING([whether CXX supports -std=c++2a])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP20FLAG="-std=c++2a" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+# FLag std=c++20
+CXXFLAGS="-Werror -std=c++20"
+AC_MSG_CHECKING([whether CXX supports -std=c++20])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP20FLAG="-std=c++20" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+#####################################################################################
+##### C++ version checks
+
+### Checking for C++ version compiler flags
+
+# FLag -std=c++98
+CXXFLAGS="-Werror -std=c++98"
+AC_MSG_CHECKING([whether CXX supports -std=c++98])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP98FLAG="-std=c++98" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
 
 # FLag -std=c++0x
-CXXFLAGS="-std=c++0x"
+CXXFLAGS="-Werror -std=c++0x"
 AC_MSG_CHECKING([whether CXX supports -std=c++0x])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP11FLAG="-std=c++0x" ], [AC_MSG_RESULT([no])])
 CXXFLAGS="$saved_cxxflags"
 
-CXXFLAGS="-std=c++11"
+CXXFLAGS="-Werror -std=c++11"
 AC_MSG_CHECKING([whether CXX supports -std=c++11])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP11FLAG="-std=c++11" ], [AC_MSG_RESULT([no])])
 CXXFLAGS="$saved_cxxflags"
 
-CXXFLAGS="-stdlib=libc++"
+CXXFLAGS="-Werror -stdlib=libc++"
 AC_MSG_CHECKING([whether CXX supports -stdlib=libc++])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <cstdio>]])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP11FLAG="${CPPUTEST_CPP11FLAG} -stdlib=libc++" ], [AC_MSG_RESULT([no])])
 CXXFLAGS="$saved_cxxflags"
@@ -106,13 +147,19 @@ CXXFLAGS="$saved_cxxflags"
 # Flag -Wno-c++98-compat
 CXXFLAGS="-Werror -Wno-c++98-compat"
 AC_MSG_CHECKING([whether CXX supports -Wno-c++98-compat])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP11BLACKLIST="${CPPUTEST_CPP11BLACKLIST} -Wno-c++98-compat" ], [AC_MSG_RESULT([no])])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CXXWARNINGFLAGS="${CPPUTEST_CXXWARNINGFLAGS} -Wno-c++98-compat" ], [AC_MSG_RESULT([no])])
 CXXFLAGS="$saved_cxxflags"
 
 # Flag -Wno-c++98-compat-pedantic
 CXXFLAGS="-Werror -Wno-c++98-compat-pedantic"
 AC_MSG_CHECKING([whether CXX supports -Wno-c++98-compat-pedantic])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CPP11BLACKLIST="${CPPUTEST_CPP11BLACKLIST} -Wno-c++98-compat-pedantic" ], [AC_MSG_RESULT([no])])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CXXWARNINGFLAGS="${CPPUTEST_CXXWARNINGFLAGS} -Wno-c++98-compat-pedantic" ], [AC_MSG_RESULT([no])])
+CXXFLAGS="$saved_cxxflags"
+
+# Flag -Wno-c++14-compat
+CXXFLAGS="-Werror -Wno-c++14-compat"
+AC_MSG_CHECKING([whether CXX supports -Wno-c++14-compat])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CXXWARNINGFLAGS="${CPPUTEST_CXXWARNINGFLAGS} -Wno-c++14-compat" ], [AC_MSG_RESULT([no])])
 CXXFLAGS="$saved_cxxflags"
 
 AC_LANG_POP
@@ -125,7 +172,7 @@ CFLAGS="$saved_cflags"
 
 # FLag -Wno-long-long must be on for C.
 CFLAGS="-Werror -Wno-long-long"
-AC_MSG_CHECKING([whether CC supports -Wno-long-long])
+AC_MSG_CHECKING([whether CC and CXX supports -Wno-long-long])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [AC_MSG_RESULT([yes]); CPPUTEST_CWARNINGFLAGS="${CPPUTEST_CWARNINGFLAGS} -Wno-long-long" CPPUTEST_CXXWARNINGFLAGS="${CPPUTEST_CXXWARNINGFLAGS} -Wno-long-long"], [AC_MSG_RESULT([no])])
 CFLAGS="$saved_cflags"
 
@@ -335,8 +382,20 @@ AC_ARG_ENABLE([std-c], [AC_HELP_STRING([--disable-std-c], [disable the use of St
 AC_ARG_ENABLE([std-cpp], [AC_HELP_STRING([--disable-std-cpp], [disable the use of Standard C++ Library])],
    [use_std_cpp=${enableval}], [use_std_cpp=${default_use_std_cpp}])
 
+AC_ARG_ENABLE([std-cpp98], [AC_HELP_STRING([--enable-std-cpp98], [enable the use of Standard C++ 98 (if the compiler supports that)])],
+   [use_std_cpp98=${enableval}], [use_std_cpp98=no])
+
 AC_ARG_ENABLE([std-cpp11], [AC_HELP_STRING([--enable-std-cpp11], [enable the use of Standard C++ 11 (if the compiler supports that)])],
    [use_std_cpp11=${enableval}], [use_std_cpp11=no])
+
+AC_ARG_ENABLE([std-cpp14], [AC_HELP_STRING([--enable-std-cpp14], [enable the use of Standard C++ 14 (if the compiler supports that)])],
+   [use_std_cpp14=${enableval}], [use_std_cpp14=no])
+
+AC_ARG_ENABLE([std-cpp17], [AC_HELP_STRING([--enable-std-cpp17], [enable the use of Standard C++ 17 (if the compiler supports that)])],
+   [use_std_cpp17=${enableval}], [use_std_cpp17=no])
+
+AC_ARG_ENABLE([std-cpp20], [AC_HELP_STRING([--enable-std-cpp20], [enable the use of Standard C++ 20 (if the compiler supports that)])],
+   [use_std_cpp20=${enableval}], [use_std_cpp20=no])
 
 AC_ARG_ENABLE([cpputest-flags], [AC_HELP_STRING([--disable-cpputest-flags], [disable CFLAGS/CPPFLAGS/CXXFLAGS set by CppUTest])],
    [cpputest_flags=${enableval}], [cpputest_flags=yes])
@@ -355,6 +414,9 @@ AC_ARG_ENABLE([generate-map-file], [AC_HELP_STRING([--enable-generate-map-file],
 
 AC_ARG_ENABLE([coverage], [AC_HELP_STRING([--enable-coverage], [enable running with coverage])],
    [coverage=${enableval}], [coverage=no])
+
+AC_ARG_ENABLE([sanitize-address], [AC_HELP_STRING([--enable-sanitize-address], [enable running with address sanitizer])],
+   [sanitize_address=${enableval}], [sanitize_address=no])
 
 ############################## Setting options ###############################
 
@@ -383,10 +445,36 @@ if test "x${use_std_cpp}" = xno; then
 
     fi
 fi
+cpp_standard_used="default"
+
+# Using the C++98 standard?
+if test "x${use_std_cpp98}" = xyes; then
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP98FLAG}"
+  cpp_standard_used="C++98"
+fi
 
 # Using the C++11 standard?
 if test "x${use_std_cpp11}" = xyes; then
-	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP11FLAG} ${CPPUTEST_CPP11BLACKLIST}"
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP11FLAG}"
+  cpp_standard_used="C++11"
+fi
+
+# Using the C++14 standard?
+if test "x${use_std_cpp14}" = xyes; then
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP14FLAG}"
+  cpp_standard_used="C++14"
+fi
+
+# Using the C++17 standard?
+if test "x${use_std_cpp17}" = xyes; then
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP17FLAG}"
+  cpp_standard_used="C++17"
+fi
+
+# Using the C++20 standard?
+if test "x${use_std_cpp20}" = xyes; then
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} ${CPPUTEST_CPP20FLAG}"
+  cpp_standard_used="C++20"
 fi
 
 # Dealing with memory leak detection
@@ -400,6 +488,13 @@ fi
 # Disabling long long support
 if test "x${use_longlong}" = xno; then
   AC_DEFINE([LONG_LONG_DISABLED], 1, [disable long long])
+fi
+
+# Dealing with address sanitizer
+if test "x${sanitize_address}" = xyes; then
+	CPPUTEST_CFLAGS="${CPPUTEST_CFLAGS} -fsanitize=address -fno-omit-frame-pointer"
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} -fsanitize=address -fno-omit-frame-pointer"
+  CPPUTEST_LDFLAGS="${CPPUTEST_CXXFLAGS} -fsanitize=address -fno-omit-frame-pointer"
 fi
 
 # Generating map files.
@@ -426,14 +521,19 @@ if test -n "${GMOCK_HOME}"; then
 
 	AC_DEFINE([INCLUDE_GTEST_TESTS], 1, [Include the GTest-related tests in the build])
 	AC_ARG_VAR([GMOCK_HOME], [Location of the GMock])
-	GTEST_HOME=${GMOCK_HOME}/gtest
+
+  if test -z "${GTEST_HOME}"; then
+	  GTEST_HOME=${GMOCK_HOME}/gtest
+  fi
 
 	CPPUTEST_CPPFLAGS="${CPPUTEST_CPPFLAGS} -I${GMOCK_HOME}/include -I${GTEST_HOME}/include -I${GTEST_HOME}"
-	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1"
+	CPPUTEST_CXXFLAGS="${CPPUTEST_CXXFLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1 -DGMOCK_RENAME_MAIN=1"
 	if test -e ${GMOCK_HOME}/lib/libgmock.la && test -e ${GTEST_HOME}/lib/libgtest.la; then \
 		CPPUTEST_LDADD="${CPPUTEST_LDADD} ${GMOCK_HOME}/lib/libgmock.la ${GTEST_HOME}/lib/libgtest.la"; \
 	elif test -e ${GMOCK_HOME}/libgmock.a && test -e ${GTEST_HOME}/libgtest.a; then \
 		CPPUTEST_LDADD="${CPPUTEST_LDADD} ${GMOCK_HOME}/libgmock.a ${GTEST_HOME}/libgtest.a"; \
+	elif test -e ${GMOCK_HOME}/libgmock.a && test -e ${GMOCK_HOME}/gtest/libgtest.a; then \
+		CPPUTEST_LDADD="${CPPUTEST_LDADD} ${GMOCK_HOME}/libgmock.a ${GMOCK_HOME}/gtest/libgtest.a"; \
 	else \
 		AC_MSG_ERROR([
 -------------------------------------
@@ -499,6 +599,7 @@ LT_INIT
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
+
 echo \
 "----------------------------------------------------------------
 
@@ -507,6 +608,8 @@ ${PACKAGE_NAME} Version ${PACKAGE_VERSION}
 Current compiler options:
    CC:                                  ${CC}
    CXX:                                 ${CXX}
+   CC version:                          ${ax_cv_c_compiler_version}
+   CXX version:                         ${ax_cv_cxx_compiler_version}
    LD:                                  ${LD}
    Default CFLAGS:                      ${CFLAGS}
    Default CXXFLAGS:                    ${CXXFLAGS}
@@ -517,10 +620,12 @@ Current compiler options:
    CppUTest LIB:                        ${LIBS}
 
 Features configured in ${PACKAGE_NAME}:
+   C++ standard used:                   ${cpp_standard_used}
    Memory Leak Detection:               ${memory_leak_detection}
    Compiling extensions:                ${cpputest_ext}
    Use Long Long (if available):        ${use_longlong}
    Disable CppUTest compile/link flags: ${cpputest_flags}
+   Address sanitizer:                   ${sanitize_address}
 
    Using Standard C++ Library:          ${use_std_cpp}
    Using Standard C Library:            ${use_std_c}

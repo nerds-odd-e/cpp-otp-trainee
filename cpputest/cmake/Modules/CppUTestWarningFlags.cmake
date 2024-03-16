@@ -16,10 +16,11 @@ else (MSVC)
 
     macro(check_and_append_cxx_warning_flags)
       foreach (flag ${ARGN})
-        check_cxx_compiler_flag("-${flag}" WARNING_CXX_FLAG_TO_CHECK)
-        if (WARNING_CXX_FLAG_TO_CHECK)
+        string(REPLACE "++" "xx" WARNING_CXX_FLAG_VAR "WARNING_CXX_FLAG_${flag}")
+        check_cxx_compiler_flag("-${flag}" ${WARNING_CXX_FLAG_VAR})
+        if (${WARNING_CXX_FLAG_VAR})
             set(CPPUTEST_CXX_WARNING_FLAGS "${CPPUTEST_CXX_WARNING_FLAGS} -${flag}")
-          endif (WARNING_CXX_FLAG_TO_CHECK)
+        endif (${WARNING_CXX_FLAG_VAR})
       endforeach (flag)
     endmacro(check_and_append_cxx_warning_flags)
 
@@ -31,6 +32,7 @@ else (MSVC)
         Weverything
         Wall
         Wextra
+        pedantic
         Wshadow
         Wswitch-default
         Wswitch-enum
@@ -42,6 +44,11 @@ else (MSVC)
         Wno-keyword-macro
         Wno-long-long
         )
+
+    if (WERROR)
+        list(APPEND WARNING_C_FLAGS Werror)
+    endif (WERROR)
+
 
     set(WARNING_C_ONLY_FLAGS
         Wstrict-prototypes
@@ -56,13 +63,15 @@ else (MSVC)
         Wno-old-style-cast
         )
 
-    if (C++11)
+    if (C++11 OR (DEFINED CMAKE_CXX_STANDARD AND NOT CMAKE_CXX_STANDARD EQUAL 98))
         set(WARNING_CXX_FLAGS
            ${WARNING_CXX_FLAGS}
            Wno-c++98-compat
            Wno-c++98-compat-pedantic
+           Wno-c++14-compat
+           Wno-inconsistent-missing-destructor-override
            )
-    endif (C++11)
+    endif ()
 
     check_and_append_c_warning_flags(${WARNING_C_FLAGS})
     check_and_append_c_warning_flags(${WARNING_C_ONLY_FLAGS})

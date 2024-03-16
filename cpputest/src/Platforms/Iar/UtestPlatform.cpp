@@ -39,6 +39,8 @@
 #undef calloc
 #undef realloc
 #undef free
+#undef strdup
+#undef strndup
 #include "CppUTest/PlatformSpecificFunctions.h"
 
 static jmp_buf test_exit_jmp_buf[10];
@@ -113,7 +115,10 @@ static long TimeInMillisImplementation()
 static const char* TimeStringImplementation()
 {
     time_t tm = time(NULL);
-    return ctime(&tm);
+    char* pTimeStr = ctime(&tm);
+    char* newlineChar = strchr(pTimeStr, '\n');   // Find the terminating newline character.
+    if(newlineChar != NULL) *newlineChar = '\0';   //If newline is found replace it with the string terminator.
+    return (pTimeStr);
 }
 
 long (*GetPlatformSpecificTimeInMillis)() = TimeInMillisImplementation;
@@ -123,15 +128,18 @@ int (*PlatformSpecificVSNprintf)(char *str, size_t size, const char* format, va_
 
 static PlatformSpecificFile PlatformSpecificFOpenImplementation(const char* filename, const char* flag)
 {
+    static int fileNo = 0;
     (void)filename;
     (void)flag;
-    return 0;
+    fileNo++;
+    return (void*)fileNo;
 }
 
 static void PlatformSpecificFPutsImplementation(const char* str, PlatformSpecificFile file)
 {
     (void)str;
     (void)file;
+    printf("FILE%d:%s",(int)file, str);
 }
 
 static void PlatformSpecificFCloseImplementation(PlatformSpecificFile file)

@@ -34,6 +34,8 @@
 #undef free
 #undef calloc
 #undef realloc
+#undef strdup
+#undef strndup
 
 #define  far  // eliminate "meaningless type qualifier" warning
 #include <time.h>
@@ -184,6 +186,16 @@ void (*PlatformSpecificFree)(void* memory) = DosFree;
 void* (*PlatformSpecificMemCpy)(void* s1, const void* s2, size_t size) = DosMemCpy;
 void* (*PlatformSpecificMemset)(void* mem, int c, size_t size) = DosMemset;
 
+static void DosSrand(unsigned int seed)
+{
+    srand(seed);
+}
+
+static int DosRand()
+{
+    return rand();
+}
+
 static double DosFabs(double d)
 {
     return fabs(d);
@@ -199,6 +211,8 @@ static int DosIsInf(double d)
     return isinf(d);
 }
 
+void (*PlatformSpecificSrand)(unsigned int) = DosSrand;
+int (*PlatformSpecificRand)(void) = DosRand;
 double (*PlatformSpecificFabs)(double) = DosFabs;
 int (*PlatformSpecificIsNan)(double d) = DosIsNan;
 int (*PlatformSpecificIsInf)(double d) = DosIsInf;

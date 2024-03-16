@@ -31,6 +31,7 @@
 #include "CppUTest/TestTestingFixture.h"
 #include "CppUTestExt/IEEE754ExceptionsPlugin.h"
 
+#ifdef CPPUTEST_HAVE_FENV
 #if CPPUTEST_FENV_IS_WORKING_PROPERLY
 
 extern "C"
@@ -44,7 +45,7 @@ TEST_GROUP(FE__with_Plugin)
     IEEE754ExceptionsPlugin ieee754Plugin;
     void setup(void) _override
     {
-        fixture.registry_->installPlugin(&ieee754Plugin);
+        fixture.installPlugin(&ieee754Plugin);
     }
 };
 
@@ -115,7 +116,7 @@ static void set_everything_but_already_failed(void)
     CHECK(1 == 2);
 }
 
-IGNORE_TEST(FE__with_Plugin, should_not_fail_again_when_test_has_already_failed)
+TEST(FE__with_Plugin, should_not_fail_again_when_test_has_already_failed)
 {
     fixture.setTestFunction(set_everything_but_already_failed);
     fixture.runAllTests();
@@ -142,4 +143,5 @@ IGNORE_TEST(IEEE754ExceptionsPlugin2, should_not_fail_in_ignored_test)
     set_everything_c();
 }
 
+#endif
 #endif

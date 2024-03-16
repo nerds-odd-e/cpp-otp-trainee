@@ -43,6 +43,10 @@ extern "C" {
 
 TEST_GROUP(MockSupport_c)
 {
+    void teardown()
+    {
+        mock_c()->clear();
+    }
 };
 
 TEST(MockSupport_c, OrderObserved)
@@ -60,12 +64,12 @@ TEST(MockSupport_c, OrderObserved)
 TEST(MockSupport_c, hasReturnValue)
 {
     mock_c()->expectOneCall("foo");
-    CHECK(!mock_c()->actualCall("foo")->hasReturnValue());
-    CHECK(!mock_c()->hasReturnValue());
+    CHECK(mock_c()->actualCall("foo")->hasReturnValue() == 0);
+    CHECK(mock_c()->hasReturnValue() == 0);
 
     mock_c()->expectOneCall("foo2")->andReturnIntValue(1);
-    CHECK(mock_c()->actualCall("foo2")->hasReturnValue());
-    CHECK(mock_c()->hasReturnValue());
+    CHECK(mock_c()->actualCall("foo2")->hasReturnValue() != 0);
+    CHECK(mock_c()->hasReturnValue() != 0);
 }
 
 TEST(MockSupport_c, expectAndActualOneCall)
@@ -116,7 +120,7 @@ extern "C"{
 
     static void typeCopy(void* dst, const void* src)
     {
-        *(int*) dst = *(int*) src;
+        *(int*) dst = *(const int*) src;
     }
 
 }
@@ -154,6 +158,28 @@ TEST(MockSupport_c, unsignedLongIntParameter)
     mock_c()->actualCall("foo")->withUnsignedLongIntParameters("p", 1);
 }
 
+TEST(MockSupport_c, doubleParameterWithTolerance)
+{
+    mock_c( )->expectOneCall("foo")->withDoubleParametersAndTolerance("p", 2.0, 0.2);
+    mock_c( )->actualCall("foo")->withDoubleParameters("p", 1.9);
+}
+
+#ifdef CPPUTEST_USE_LONG_LONG
+
+TEST(MockSupport_c, longLongIntParameter)
+{
+    mock_c()->expectOneCall("foo")->withLongLongIntParameters("p", 1);
+    mock_c()->actualCall("foo")->withLongLongIntParameters("p", 1);
+}
+
+TEST(MockSupport_c, unsignedLongLongIntParameter)
+{
+    mock_c()->expectOneCall("foo")->withUnsignedLongLongIntParameters("p", 1);
+    mock_c()->actualCall("foo")->withUnsignedLongLongIntParameters("p", 1);
+}
+
+#endif
+
 TEST(MockSupport_c, memoryBufferParameter)
 {
     const unsigned char mem_buffer[] = { 1, 2, 3};
@@ -173,6 +199,15 @@ TEST(MockSupport_c, outputParameters)
     LONGS_EQUAL(2, retval);
 }
 
+TEST(MockSupport_c, unmodifiedOutputParameter)
+{
+    int param = 1;
+    mock_c()->expectOneCall("foo")->withUnmodifiedOutputParameter("out");
+    mock_c()->actualCall("foo")->withOutputParameter("out", &param);
+    mock_c()->checkExpectations();
+    LONGS_EQUAL(1, param);
+}
+
 TEST(MockSupport_c, outputParameters_differentType)
 {
     long param = 1;
@@ -186,8 +221,8 @@ TEST(MockSupport_c, outputParameters_differentType)
 
 TEST(MockSupport_c, outputParametersOfType)
 {
-    long param = 1;
-    const long retval = 2;
+    int param = 1;
+    const int retval = 2;
     mock_c()->installCopier("typeName", typeCopy);
     mock_c()->expectOneCall("foo")->withOutputParameterOfTypeReturning("typeName", "out", &retval);
     mock_c()->actualCall("foo")->withOutputParameterOfType("typeName", "out", &param);
@@ -333,6 +368,62 @@ TEST(MockSupport_c, whenNoReturnValueIsGivenReturnUnsignedLongIntValueOrDefaultS
     LONGS_EQUAL(defaultValue, mock_c()->actualCall("foo")->returnUnsignedLongIntValueOrDefault(defaultValue));
     LONGS_EQUAL(defaultValue, mock_c()->returnUnsignedLongIntValueOrDefault(defaultValue));
 }
+
+#ifdef CPPUTEST_USE_LONG_LONG
+
+TEST(MockSupport_c, returnLongLongIntValue)
+{
+    long long int expected_value = -10L;
+    mock_c()->expectOneCall("boo")->andReturnLongLongIntValue(expected_value);
+    LONGLONGS_EQUAL(expected_value, mock_c()->actualCall("boo")->longLongIntReturnValue());
+    LONGLONGS_EQUAL(expected_value, mock_c()->longLongIntReturnValue());
+    LONGLONGS_EQUAL(MOCKVALUETYPE_LONG_LONG_INTEGER, mock_c()->returnValue().type);
+}
+
+TEST(MockSupport_c, whenReturnValueIsGivenReturnLongLongIntValueOrDefaultShouldIgnoreTheDefault)
+{
+    long long int defaultValue = -10L;
+    long long int expectedValue = defaultValue - 1L;
+    mock_c()->expectOneCall("foo")->andReturnLongLongIntValue(expectedValue);
+    LONGLONGS_EQUAL(expectedValue, mock_c()->actualCall("foo")->returnLongLongIntValueOrDefault(defaultValue));
+    LONGLONGS_EQUAL(expectedValue, mock_c()->returnLongLongIntValueOrDefault(defaultValue));
+}
+
+TEST(MockSupport_c, whenNoReturnValueIsGivenReturnLongLongIntValueOrDefaultShouldlUseTheDefaultValue)
+{
+    long long int defaultValue = -10L;
+    mock_c()->expectOneCall("foo");
+    LONGLONGS_EQUAL(defaultValue, mock_c()->actualCall("foo")->returnLongLongIntValueOrDefault(defaultValue));
+    LONGLONGS_EQUAL(defaultValue, mock_c()->returnLongLongIntValueOrDefault(defaultValue));
+}
+
+TEST(MockSupport_c, returnUnsignedLongLongIntValue)
+{
+    unsigned long long int expected_value = 10;
+    mock_c()->expectOneCall("boo")->andReturnUnsignedLongLongIntValue(expected_value);
+    UNSIGNED_LONGLONGS_EQUAL(expected_value, mock_c()->actualCall("boo")->unsignedLongLongIntReturnValue());
+    UNSIGNED_LONGLONGS_EQUAL(expected_value, mock_c()->unsignedLongLongIntReturnValue());
+    UNSIGNED_LONGLONGS_EQUAL(MOCKVALUETYPE_UNSIGNED_LONG_LONG_INTEGER, mock_c()->returnValue().type);
+}
+
+TEST(MockSupport_c, whenReturnValueIsGivenReturnUnsignedLongLongIntValueOrDefaultShouldIgnoreTheDefault)
+{
+    unsigned long long int defaultValue = 10L;
+    unsigned long long int expectedValue = defaultValue + 1L;
+    mock_c()->expectOneCall("foo")->andReturnUnsignedLongLongIntValue(expectedValue);
+    UNSIGNED_LONGLONGS_EQUAL(expectedValue, mock_c()->actualCall("foo")->returnUnsignedLongLongIntValueOrDefault(defaultValue));
+    UNSIGNED_LONGLONGS_EQUAL(expectedValue, mock_c()->returnUnsignedLongLongIntValueOrDefault(defaultValue));
+}
+
+TEST(MockSupport_c, whenNoReturnValueIsGivenReturnUnsignedLongLongIntValueOrDefaultShouldlUseTheDefaultValue)
+{
+    unsigned long long int defaultValue = 10L;
+    mock_c()->expectOneCall("foo");
+    UNSIGNED_LONGLONGS_EQUAL(defaultValue, mock_c()->actualCall("foo")->returnUnsignedLongLongIntValueOrDefault(defaultValue));
+    UNSIGNED_LONGLONGS_EQUAL(defaultValue, mock_c()->returnUnsignedLongLongIntValueOrDefault(defaultValue));
+}
+
+#endif
 
 TEST(MockSupport_c, returnStringValue)
 {
@@ -517,6 +608,12 @@ TEST(MockSupport_c, MockSupportSetDataObject)
 {
     mock_c()->setDataObject("name", "type", (void*) 1);
     POINTERS_EQUAL((void*) 1, mock_c()->getData("name").value.objectValue);
+}
+
+TEST(MockSupport_c, MockSupportSetDataConstObject)
+{
+    mock_c()->setDataConstObject("name", "type", (const void*) 5);
+    POINTERS_EQUAL((void*) 5, mock_c()->getData("name").value.constObjectValue);
 }
 
 TEST(MockSupport_c, WorksInCFile)

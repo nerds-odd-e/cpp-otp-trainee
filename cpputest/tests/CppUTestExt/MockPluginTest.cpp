@@ -50,6 +50,8 @@ TEST_GROUP(MockPlugin)
     {
         delete test;
         delete result;
+        mock().clear();
+        mock().removeAllComparatorsAndCopiers();
     }
 };
 
@@ -65,7 +67,7 @@ TEST(MockPlugin, checkExpectationsAndClearAtEnd)
 
     plugin.postTestAction(*test, *result);
 
-    STRCMP_CONTAINS(expectedFailure.getMessage().asCharString(), output.getOutput().asCharString())
+    STRCMP_CONTAINS(expectedFailure.getMessage().asCharString(), output.getOutput().asCharString());
     LONGS_EQUAL(0, mock().expectedCallsLeft());
     CHECK_NO_MOCK_FAILURE();
 }
@@ -83,7 +85,7 @@ TEST(MockPlugin, checkExpectationsWorksAlsoWithHierachicalObjects)
 
     plugin.postTestAction(*test, *result);
 
-    STRCMP_CONTAINS(expectedFailure.getMessage().asCharString(), output.getOutput().asCharString())
+    STRCMP_CONTAINS(expectedFailure.getMessage().asCharString(), output.getOutput().asCharString());
     CHECK_NO_MOCK_FAILURE();
 }
 
@@ -106,11 +108,13 @@ TEST(MockPlugin, installComparatorRecordsTheComparatorButNotInstallsItYet)
 
     DummyComparator comparator;
     plugin.installComparator("myType", comparator);
-    mock().expectOneCall("foo").withParameterOfType("myType", "name", NULL);
-    mock().actualCall("foo").withParameterOfType("myType", "name", NULL);
+    mock().expectOneCall("foo").withParameterOfType("myType", "name", NULLPTR);
+    mock().actualCall("foo").withParameterOfType("myType", "name", NULLPTR);
 
     MockNoWayToCompareCustomTypeFailure failure(test, "myType");
     CHECK_EXPECTED_MOCK_FAILURE(failure);
+
+    plugin.clear();
 }
 
 class DummyCopier : public MockNamedValueCopier
@@ -128,11 +132,13 @@ TEST(MockPlugin, installCopierRecordsTheCopierButNotInstallsItYet)
 
     DummyCopier copier;
     plugin.installCopier("myType", copier);
-    mock().expectOneCall("foo").withOutputParameterOfTypeReturning("myType", "name", NULL);
-    mock().actualCall("foo").withOutputParameterOfType("myType", "name", NULL);
+    mock().expectOneCall("foo").withOutputParameterOfTypeReturning("myType", "name", NULLPTR);
+    mock().actualCall("foo").withOutputParameterOfType("myType", "name", NULLPTR);
 
     MockNoWayToCopyCustomTypeFailure failure(test, "myType");
     CHECK_EXPECTED_MOCK_FAILURE(failure);
+
+    plugin.clear();
 }
 
 TEST(MockPlugin, preTestActionWillEnableMultipleComparatorsToTheGlobalMockSupportSpace)
@@ -150,6 +156,8 @@ TEST(MockPlugin, preTestActionWillEnableMultipleComparatorsToTheGlobalMockSuppor
 
     mock().checkExpectations();
     LONGS_EQUAL(0, result->getFailureCount());
+
+    plugin.clear();
 }
 
 static void _failTwiceFunction()
@@ -161,7 +169,7 @@ static void _failTwiceFunction()
 TEST(MockPlugin, shouldNotFailAgainWhenTestAlreadyFailed)
 {
     TestTestingFixture fixture;
-    fixture.registry_->installPlugin(&plugin);
+    fixture.installPlugin(&plugin);
     fixture.setTestFunction(_failTwiceFunction);
     fixture.runAllTests();
     fixture.assertPrintContains("1 failures, 1 tests, 1 ran, 2 checks,");

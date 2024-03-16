@@ -30,10 +30,12 @@
 
 TEST_GROUP(MockComparatorCopierTest)
 {
-  void teardown()
-  {
-    mock().checkExpectations();
-  }
+    void teardown()
+    {
+        mock().checkExpectations();
+        mock().clear();
+        mock().removeAllComparatorsAndCopiers();
+    }
 };
 
 class MyTypeForTesting
@@ -117,12 +119,12 @@ TEST(MockComparatorCopierTest, customObjectParameterSucceeds)
 
 static bool myTypeIsEqual(const void* object1, const void* object2)
 {
-    return ((MyTypeForTesting*)object1)->value == ((MyTypeForTesting*)object2)->value;
+    return ((const MyTypeForTesting*)object1)->value == ((const MyTypeForTesting*)object2)->value;
 }
 
 static SimpleString myTypeValueToString(const void* object)
 {
-    return StringFrom(((MyTypeForTesting*)object)->value);
+    return StringFrom(((const MyTypeForTesting*)object)->value);
 }
 
 TEST(MockComparatorCopierTest, customObjectWithFunctionComparator)
@@ -205,7 +207,7 @@ TEST(MockComparatorCopierTest, unexpectedCustomTypeOutputParameter)
     MockExpectedCallsListForTest expectations;
     expectations.addFunction("foo");
     MockNamedValue parameter("parameterName");
-    parameter.setObjectPointer("MyTypeForTesting", &actualObject);
+    parameter.setConstObjectPointer("MyTypeForTesting", &actualObject);
     MockUnexpectedOutputParameterFailure expectedFailure(mockFailureTest(), "foo", parameter, expectations);
 
     mock().expectOneCall("foo");
@@ -250,7 +252,7 @@ TEST(MockComparatorCopierTest, customTypeOutputParameterOfWrongType)
     MockExpectedCallsListForTest expectations;
     expectations.addFunction("foo")->withOutputParameterOfTypeReturning("MyTypeForTesting", "output", &expectedObject);
     MockNamedValue parameter("output");
-    parameter.setObjectPointer("OtherTypeForTesting", &actualObject);
+    parameter.setConstObjectPointer("OtherTypeForTesting", &actualObject);
     MockUnexpectedOutputParameterFailure expectedFailure(mockFailureTest(), "foo", parameter, expectations);
 
     mock().expectOneCall("foo").withOutputParameterOfTypeReturning("MyTypeForTesting", "output", &expectedObject);

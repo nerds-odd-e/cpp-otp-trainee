@@ -6,7 +6,9 @@ if (MSVC)
       ADD_DEFINITIONS(-DSTDC_WANT_SECURE_LIB)
     endif(STDC_WANT_SECURE_LIB)
 elseif (STD_C)
-    set(CPP_PLATFORM Gcc)
+    if(NOT CPP_PLATFORM)
+        set(CPP_PLATFORM Gcc)
+    endif(NOT CPP_PLATFORM)
 else (MSVC)
     set(STD_CPP False)
     set(MEMORY_LEAK_DETECTION False)
@@ -43,19 +45,36 @@ if (LONGLONG)
 endif (LONGLONG)
 
 if (MAP_FILE AND NOT MSVC)
-    set(CPPUTEST_LD_FLAGS "${CPPUTEST_LD_FLAGS} -Wl,-map,$<.map.txt")
+    set(CPPUTEST_LD_FLAGS "${CPPUTEST_LD_FLAGS} -Wl,-Map,$<.map.txt")
 endif (MAP_FILE AND NOT MSVC)
 
 if (COVERAGE AND NOT MSVC)
     set(CPPUTEST_C_FLAGS "${CPPUTEST_C_FLAGS} --coverage")
     set(CPPUTEST_CXX_FLAGS "${CPPUTEST_CXX_FLAGS} --coverage")
     set(CMAKE_BUILD_TYPE "Debug")
-endif (COVERAGE AND NOT MSVC)
+    find_program(GCOVR gcovr DOC "gcovr executable")
 
-if (C++11)
+    if (NOT GCOVR)
+        message(SEND_ERROR "gcovr not found")
+    endif()
+
+    add_custom_target(coverage ${GCOVR}
+        --root ${PROJECT_SOURCE_DIR}
+        --output "${CMAKE_BINARY_DIR}/coverage/coverage.html"
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Generate coverage data"
+        VERBATIM
+        )
+endif()
+
+if (CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+elseif (C++11)
     find_package(CXX11 REQUIRED)
     set(CPPUTEST_CXX_FLAGS "${CPPUTEST_CXX_FLAGS} ${CXX11_FLAGS}")
-endif (C++11)
+else()
+    # No standard specified
+endif ()
 
 set(GMOCK_HOME $ENV{GMOCK_HOME})
 if (DEFINED ENV{GMOCK_HOME})
@@ -64,7 +83,6 @@ if (DEFINED ENV{GMOCK_HOME})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
     include_directories(${GMOCK_HOME}/include ${GMOCK_HOME}/gtest ${GMOCK_HOME}/gtest/include)
     add_subdirectory(${GMOCK_HOME} "${CMAKE_CURRENT_BINARY_DIR}/gmock")
-    set(CPPUNIT_EXTERNAL_LIBRARIES ${CPPUNIT_EXTERNAL_LIBARIES} gmock gtest)
 
     set(CPPUTEST_C_WARNING_FLAGS "")
     set(CPPUTEST_CXX_WARNING_FLAGS "")

@@ -14,18 +14,22 @@ AppVeyor Windows build status:
 Coverage:
 [![Coverage Status](https://coveralls.io/repos/cpputest/cpputest/badge.svg?branch=master&service=github)](https://coveralls.io/github/cpputest/cpputest?branch=master)
 
+Slack channel:
+[Join if link not expired](https://join.slack.com/t/cpputest/shared_invite/zt-dvhne8z8-i_sOcxMF3oYvjoN~qpwiDw)
+
 ## Getting Started
 
 You'll need to do the following to get started:
 
 Building from source (unix-based, cygwin, MacOSX):
 
-* Download latest version
-* autogen.sh
-* configure
+* git clone git://github.com/cpputest/cpputest.git
+* cd cpputest_build
+* autoreconf .. -i
+* ../configure
 * make
-* make check
-* You can use "make install" if you want to install CppUTest system-wide
+
+You can use `make install` if you want to install CppUTest system-wide
 
 You can also use CMake, which also works for Windows Visual Studio.
 
@@ -35,7 +39,7 @@ You can also use CMake, which also works for Windows Visual Studio.
 
 Then to get started, you'll need to do the following:
 * Add the include path to the Makefile. Something like:
-    * CPPFLAGS += -I(CPPUTEST_HOME)/include
+    * CPPFLAGS += -I$(CPPUTEST_HOME)/include
 * Add the memory leak macros to your Makefile (needed for additional debug info!). Something like:
     * CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacros.h
     * CFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
@@ -57,8 +61,10 @@ TEST(FirstTestGroup, FirstTest)
 
 ## Command line switches
 
+* -h help, shows the latest help, including the parameters we've implemented after updating this README page.
 * -v verbose, print each test name as it runs
 * -r# repeat the tests some number of times, default is one, default if # is not specified is 2. This is handy if you are experiencing memory leaks related to statics and caches.
+* -s# random shuffle the test execution order. # is an integer used for seeding the random number generator. # is optional, and if omitted, the seed value is chosen automatically, which results in a different order every time. The seed value is printed to console to make it possible to reproduce a previously generated execution order. Handy for detecting problems related to dependencies between tests.
 * -g group only run test whose group contains the substring group
 * -n name only run test whose name contains the substring name
 
@@ -90,14 +96,15 @@ The failure of one of these macros causes the current test to immediately exit
 * BYTES_EQUAL(expected, actual) - Compares two numbers, eight bits wide
 * POINTERS_EQUAL(expected, actual) - Compares two const void *
 * DOUBLES_EQUAL(expected, actual, tolerance) - Compares two doubles within some tolerance
+* ENUMS_EQUAL_INT(excepted, actual) - Compares two enums which their underlying type is int
+* ENUMS_EQUAL_TYPE(underlying_type, excepted, actual) - Compares two enums which they have the same underlying type
 * FAIL(text) - always fails
 * TEST_EXIT - Exit the test without failure - useful for contract testing (implementing an assert fake)
 
 
 Customize CHECK_EQUAL to work with your types that support operator==()
 
-* Create the function:
-** SimpleString StringFrom (const yourType&)
+* Create the function: `SimpleString StringFrom(const yourType&)`
 
 The Extensions directory has a few of these.
 
@@ -153,10 +160,8 @@ TEST(MemoryLeakWarningTest, Ignore1)
 
 int main(int ac, char** av)
 {
-  return CommandLineTestRunner::RunAllTests(ac, av);
+  return RUN_ALL_TESTS(ac, av);
 }
-
-IMPORT_TEST_GROUP(ClassName)
 ```
 
 ## Example Test
@@ -177,7 +182,7 @@ TEST_GROUP(ClassName)
   {
     delete className;
   }
-}
+};
 
 TEST(ClassName, Create)
 {
@@ -195,5 +200,26 @@ There are some scripts that are helpful in creating your initial h, cpp, and
 Test files.  See scripts/README.TXT
 
 
+## Integration as external CMake project
 
+Sometimes you want to use CppUTest in your project without installing it to your system or for having control over the version you are using. This little snippet get the wanted version from Github and builds it as a library.
 
+```cmake
+# CppUTest
+include(FetchContent)
+FetchContent_Declare(
+    CppUTest
+    GIT_REPOSITORY https://github.com/cpputest/cpputest.git
+    GIT_TAG        latest-passing-build # or use release tag, eg. v3.8
+)
+# Set this to ON if you want to have the CppUTests in your project as well.
+set(TESTS OFF CACHE BOOL "Switch off CppUTest Test build")
+FetchContent_MakeAvailable(CppUTest)
+```
+
+It can be used then like so:
+
+```cmake
+add_executable(run_tests UnitTest1.cpp UnitTest2.cpp)
+target_link_libraries(run_tests PRIVATE CppUTest CppUTestExt)
+```

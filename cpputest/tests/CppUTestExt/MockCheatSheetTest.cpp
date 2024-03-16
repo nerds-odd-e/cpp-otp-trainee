@@ -25,6 +25,7 @@ static int productionCodeFooCalls()
 {
     int return_value;
     return_value = foo("value_string", 10);
+    (void)return_value;
     return_value = foo("value_string", 10);
     return return_value;
 }
@@ -42,6 +43,8 @@ TEST_GROUP(MockCheatSheet)
     {
         /* Check expectations. Alternatively use MockSupportPlugin */
         mock().checkExpectations();
+
+        mock().clear();
     }
 };
 

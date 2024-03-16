@@ -57,6 +57,11 @@ MockSupportPlugin::MockSupportPlugin(const SimpleString& name)
 
 MockSupportPlugin::~MockSupportPlugin()
 {
+    clear();
+}
+
+void MockSupportPlugin::clear()
+{
     repository_.clear();
 }
 
@@ -72,7 +77,7 @@ void MockSupportPlugin::postTestAction(UtestShell& test, TestResult& result)
     if (!test.hasFailed())
         mock().checkExpectations();
     mock().clear();
-    mock().setMockFailureStandardReporter(NULL);
+    mock().setMockFailureStandardReporter(NULLPTR);
     mock().removeAllComparatorsAndCopiers();
 }
 

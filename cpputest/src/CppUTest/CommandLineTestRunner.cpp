@@ -29,15 +29,16 @@
 #include "CppUTest/CommandLineTestRunner.h"
 #include "CppUTest/TestOutput.h"
 #include "CppUTest/JUnitTestOutput.h"
+#include "CppUTest/PlatformSpecificFunctions.h"
 #include "CppUTest/TeamCityTestOutput.h"
 #include "CppUTest/TestRegistry.h"
 
 int CommandLineTestRunner::RunAllTests(int ac, char** av)
 {
-    return RunAllTests(ac, (const char**) av);
+    return RunAllTests(ac, (const char *const *) av);
 }
 
-int CommandLineTestRunner::RunAllTests(int ac, const char** av)
+int CommandLineTestRunner::RunAllTests(int ac, const char *const *av)
 {
     int result = 0;
     ConsoleTestOutput backupOutput;
@@ -58,8 +59,8 @@ int CommandLineTestRunner::RunAllTests(int ac, const char** av)
     return result;
 }
 
-CommandLineTestRunner::CommandLineTestRunner(int ac, const char** av, TestRegistry* registry) :
-    output_(NULL), arguments_(NULL), registry_(registry)
+CommandLineTestRunner::CommandLineTestRunner(int ac, const char *const *av, TestRegistry* registry) :
+    output_(NULLPTR), arguments_(NULLPTR), registry_(registry)
 {
     arguments_ = new CommandLineArguments(ac, av);
 }
@@ -72,7 +73,7 @@ CommandLineTestRunner::~CommandLineTestRunner()
 
 int CommandLineTestRunner::runAllTestsMain()
 {
-    int testResult = 0;
+    int testResult = 1;
 
     SetPointerPlugin pPlugin(DEF_PLUGIN_SET_POINTER);
     registry_->installPlugin(&pPlugin);
@@ -88,8 +89,9 @@ void CommandLineTestRunner::initializeTestRun()
 {
     registry_->setGroupFilters(arguments_->getGroupFilters());
     registry_->setNameFilters(arguments_->getNameFilters());
-	
-    if (arguments_->isVerbose()) output_->verbose();
+
+    if (arguments_->isVerbose()) output_->verbose(TestOutput::level_verbose);
+    if (arguments_->isVeryVerbose()) output_->verbose(TestOutput::level_veryVerbose);
     if (arguments_->isColor()) output_->color();
     if (arguments_->runTestsInSeperateProcess()) registry_->setRunTestsInSeperateProcess();
     if (arguments_->isRunIgnored()) registry_->setRunIgnored();
@@ -98,9 +100,10 @@ void CommandLineTestRunner::initializeTestRun()
 int CommandLineTestRunner::runAllTests()
 {
     initializeTestRun();
-    int loopCount = 0;
-    int failureCount = 0;
-    int repeat_ = arguments_->getRepeatCount();
+    size_t loopCount = 0;
+    size_t failedTestCount = 0;
+    size_t failedExecutionCount = 0;
+    size_t repeatCount = arguments_->getRepeatCount();
 
     if (arguments_->isListingTestGroupNames())
     {
@@ -116,14 +119,29 @@ int CommandLineTestRunner::runAllTests()
         return 0;
     }
 
-    while (loopCount++ < repeat_) {
-        output_->printTestRun(loopCount, repeat_);
+    if (arguments_->isReversing())
+        registry_->reverseTests();
+
+    if (arguments_->isShuffling())
+    {
+        output_->print("Test order shuffling enabled with seed: ");
+        output_->print(arguments_->getShuffleSeed());
+        output_->print("\n");
+    }
+    while (loopCount++ < repeatCount) {
+
+        if (arguments_->isShuffling())
+            registry_->shuffleTests(arguments_->getShuffleSeed());
+
+        output_->printTestRun(loopCount, repeatCount);
         TestResult tr(*output_);
         registry_->runAllTests(tr);
-        failureCount += tr.getFailureCount();
+        failedTestCount += tr.getFailureCount();
+        if (tr.isFailure()) {
+            failedExecutionCount++;
+        }
     }
-
-    return failureCount;
+    return (int) (failedTestCount != 0 ? failedTestCount : failedExecutionCount);
 }
 
 TestOutput* CommandLineTestRunner::createTeamCityOutput()
@@ -134,7 +152,7 @@ TestOutput* CommandLineTestRunner::createTeamCityOutput()
 TestOutput* CommandLineTestRunner::createJUnitOutput(const SimpleString& packageName)
 {
     JUnitTestOutput* junitOutput = new JUnitTestOutput;
-    if (junitOutput != NULL) {
+    if (junitOutput != NULLPTR) {
       junitOutput->setPackageName(packageName);
     }
     return junitOutput;
@@ -157,7 +175,7 @@ bool CommandLineTestRunner::parseArguments(TestPlugin* plugin)
 {
   if (!arguments_->parse(plugin)) {
     output_ = createConsoleOutput();
-    output_->print(arguments_->usage());
+    output_->print((arguments_->needHelp()) ? arguments_->help() : arguments_->usage());
     return false;
   }
 

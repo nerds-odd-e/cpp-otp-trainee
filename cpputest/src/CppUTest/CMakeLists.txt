@@ -1,10 +1,11 @@
-set(CppUTest_src
+add_library(CppUTest
         CommandLineArguments.cpp
         MemoryLeakWarningPlugin.cpp
         TestHarness_c.cpp
         TestRegistry.cpp
         CommandLineTestRunner.cpp
         SimpleString.cpp
+        SimpleStringInternalCache.cpp
         TestMemoryAllocator.cpp
         TestResult.cpp
         JUnitTestOutput.cpp
@@ -17,7 +18,21 @@ set(CppUTest_src
         TestTestingFixture.cpp
         SimpleMutex.cpp
         Utest.cpp
-        ../Platforms/${CPP_PLATFORM}/UtestPlatform.cpp
+)
+
+#[[Set CPP_PLATFORM in a parent CMakeLists.txt if reusing one of the provided platforms, else supply the missing definitions]]
+if (CPP_PLATFORM)
+    target_sources(CppUTest
+        PRIVATE
+            ../Platforms/${CPP_PLATFORM}/UtestPlatform.cpp
+    )
+endif(CPP_PLATFORM)
+
+#[[Arrange for the include directory to be added to the include paths of any CMake target depending on CppUTest.]]
+target_include_directories(CppUTest
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+        $<INSTALL_INTERFACE:include>
 )
 
 set(CppUTest_headers
@@ -29,6 +44,7 @@ set(CppUTest_headers
         ${CppUTestRootDirectory}/include/CppUTest/TestOutput.h
         ${CppUTestRootDirectory}/include/CppUTest/CppUTestConfig.h
         ${CppUTestRootDirectory}/include/CppUTest/SimpleString.h
+        ${CppUTestRootDirectory}/include/CppUTest/SimpleStringInternalCache.h
         ${CppUTestRootDirectory}/include/CppUTest/TestPlugin.h
         ${CppUTestRootDirectory}/include/CppUTest/JUnitTestOutput.h
         ${CppUTestRootDirectory}/include/CppUTest/TeamCityTestOutput.h
@@ -46,15 +62,18 @@ set(CppUTest_headers
         ${CppUTestRootDirectory}/include/CppUTest/MemoryLeakWarningPlugin.h
         ${CppUTestRootDirectory}/include/CppUTest/TestHarness_c.h
         ${CppUTestRootDirectory}/include/CppUTest/UtestMacros.h
+        ${CppUTestRootDirectory}/include/CppUTest/SimpleMutex.h
 )
 
-add_library(CppUTest STATIC ${CppUTest_src} ${CppUTest_headers})
+set_target_properties(CppUTest PROPERTIES
+    PUBLIC_HEADER "${CppUTest_headers}")
+
 if (WIN32)
     target_link_libraries(CppUTest winmm.lib)
 endif (WIN32)
-install(FILES ${CppUTest_headers} DESTINATION include/CppUTest)
 install(TARGETS CppUTest
     EXPORT CppUTestTargets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/CppUTest"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/CppUTest")

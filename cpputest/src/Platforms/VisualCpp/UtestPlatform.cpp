@@ -4,6 +4,8 @@
 #undef free
 #undef calloc
 #undef realloc
+#undef strdup
+#undef strndup
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -75,7 +77,26 @@ TestOutput::WorkingEnvironment PlatformSpecificGetWorkingEnvironment()
 
 static long VisualCppTimeInMillis()
 {
-    return timeGetTime();
+	static LARGE_INTEGER s_frequency;
+	static const BOOL s_use_qpc = QueryPerformanceFrequency(&s_frequency);
+	if (s_use_qpc)
+	{
+		LARGE_INTEGER now;
+		QueryPerformanceCounter(&now);
+		return (long)((now.QuadPart * 1000) / s_frequency.QuadPart);
+	} 
+	else 
+	{
+	#ifdef TIMERR_NOERROR
+		return timeGetTime();
+	#else
+		#if !defined(_WIN32_WINNT) || !defined(_WIN32_WINNT_VISTA) || (_WIN32_WINNT < _WIN32_WINNT_VISTA)
+			return GetTickCount();
+		#else
+			return (long)GetTickCount64();
+		#endif
+	#endif
+	}
 }
 
 long (*GetPlatformSpecificTimeInMillis)() = VisualCppTimeInMillis;
@@ -164,6 +185,8 @@ static void VisualCppFree(void* memory)
     free(memory);
 }
 
+void (*PlatformSpecificSrand)(unsigned int) = srand;
+int (*PlatformSpecificRand)(void) = rand;
 void* (*PlatformSpecificMalloc)(size_t size) = VisualCppMalloc;
 void* (*PlatformSpecificRealloc)(void* memory, size_t size) = VisualCppReAlloc;
 void (*PlatformSpecificFree)(void* memory) = VisualCppFree;

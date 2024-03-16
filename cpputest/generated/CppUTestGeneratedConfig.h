@@ -43,6 +43,11 @@
 /* Define if you have POSIX threads libraries and header files. */
 /* #undef HAVE_PTHREAD */
 
+/* Define to 1 if you have the `pthread_mutex_lock' function. */
+#ifndef CPPUTEST_HAVE_PTHREAD_MUTEX_LOCK
+#define CPPUTEST_HAVE_PTHREAD_MUTEX_LOCK 1
+#endif
+
 /* Define to 1 if you have the <stddef.h> header file. */
 #ifndef CPPUTEST_HAVE_STDDEF_H
 #define CPPUTEST_HAVE_STDDEF_H 1
@@ -56,6 +61,11 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #ifndef CPPUTEST_HAVE_STDLIB_H
 #define CPPUTEST_HAVE_STDLIB_H 1
+#endif
+
+/* Define to 1 if you have the `strdup' function. */
+#ifndef CPPUTEST_HAVE_STRDUP
+#define CPPUTEST_HAVE_STRDUP 1
 #endif
 
 /* Define to 1 if you have the <strings.h> header file. */
@@ -120,7 +130,9 @@
 /* #undef INCLUDE_GTEST_TESTS */
 
 /* disable long long */
-/* #undef LONG_LONG_DISABLED */
+#ifndef CPPUTEST_LONG_LONG_DISABLED
+#define CPPUTEST_LONG_LONG_DISABLED 1
+#endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #ifndef CPPUTEST_LT_OBJDIR
@@ -147,7 +159,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef CPPUTEST_PACKAGE_STRING
-#define CPPUTEST_PACKAGE_STRING "CppUTest 3.8"
+#define CPPUTEST_PACKAGE_STRING "CppUTest 4.0"
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -162,7 +174,7 @@
 
 /* Define to the version of this package. */
 #ifndef CPPUTEST_PACKAGE_VERSION
-#define CPPUTEST_PACKAGE_VERSION "3.8"
+#define CPPUTEST_PACKAGE_VERSION "4.0"
 #endif
 
 /* Define to necessary symbol if this constant uses a non-standard name on
@@ -182,7 +194,7 @@
 
 /* Version number of package */
 #ifndef CPPUTEST_VERSION
-#define CPPUTEST_VERSION "3.8"
+#define CPPUTEST_VERSION "4.0"
 #endif
 
 /* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,

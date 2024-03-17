@@ -19,6 +19,7 @@ bool AuthenticationService::isValid(const std::string userName, const std::strin
     if (isValid) {
         return true;
     } else {
+        logger.log("account: " + userName + " login failed");
         return false;
     }
 }

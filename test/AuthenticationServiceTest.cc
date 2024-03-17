@@ -18,10 +18,20 @@ public:
     }
 };
 
+class LoggerMock : public Logger {
+public:
+    void log(std::string message) {
+        logMessage = message;
+    }
+
+    std::string logMessage;
+};
+
 TEST(AuthenticationService, IsValid) {
     ProfileDaoStub profileDaoStub;
     RsaTokenDaoStub rsaTokenDaoStub;
-    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub);
+    LoggerMock loggerMock;
+    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub, loggerMock);
 
     bool actual = target.isValid("joey", "91000000");
 
@@ -31,9 +41,21 @@ TEST(AuthenticationService, IsValid) {
 TEST(AuthenticationService, IsInvalid) {
     ProfileDaoStub profileDaoStub;
     RsaTokenDaoStub rsaTokenDaoStub;
-    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub);
+    LoggerMock loggerMock;
+    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub, loggerMock);
 
     bool actual = target.isValid("joey", "91000001");
 
     CHECK_FALSE(actual);
+}
+
+TEST(AuthenticationService, IsInvalidWithLogger) {
+    ProfileDaoStub profileDaoStub;
+    RsaTokenDaoStub rsaTokenDaoStub;
+    LoggerMock loggerMock;
+    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub, loggerMock);
+
+    target.isValid("joey", "91000001");
+
+    STRCMP_EQUAL("account: joey login failed", loggerMock.logMessage.c_str());
 }

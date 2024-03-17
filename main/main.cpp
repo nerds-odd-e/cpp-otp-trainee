@@ -8,7 +8,8 @@ int main() {
 //    std::cout << "Hello, World!" << std::endl;
     ProfileDao profileDao;
     RsaTokenDao rsaTokenDao;
-    AuthenticationService authenticationService = AuthenticationService(profileDao, rsaTokenDao);
+    Logger logger;
+    AuthenticationService authenticationService = AuthenticationService(profileDao, rsaTokenDao, logger);
     std::cout << "is valid: " << authenticationService.isValid("joey", "91000000") << std::endl;
     return 0;
 }

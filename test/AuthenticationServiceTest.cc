@@ -1,30 +1,69 @@
 #include "CppUTest/TestHarness.h"
 #include "AuthenticationService.h"
+#include "CppUTestExt/MockSupport.h"
 
 TEST_GROUP(AuthenticationService) {
+    void setup() {
+        mock().ignoreOtherCalls();
+    }
+
+    void teardown() {
+        mock().checkExpectations();
+        mock().clear();
+    }
 };
+
+//class ProfileDaoStub : public ProfileDao {
+//public:
+//    std::string getPassword(std::string userName) {
+//        return "91";
+//    }
+//};
+//
+//class RsaTokenDaoStub : public RsaTokenDao {
+//public:
+//    std::string getRandom(std::string userName) {
+//        return "000000";
+//    }
+//};
+
+//class LoggerMock : public Logger {
+//public:
+//    void log(std::string message) {
+//        logMessage = message;
+//    }
+//
+//    std::string logMessage;
+//};
+
+extern "C" {
+#include "ProfileDao.h"
+#include "RsaTokenDao.h"
+#include "Logger.h"
+}
 
 class ProfileDaoStub : public ProfileDao {
 public:
     std::string getPassword(std::string userName) {
-        return "91";
+        return mock().actualCall("getPassword").returnStringValueOrDefault("91");
     }
+
 };
 
 class RsaTokenDaoStub : public RsaTokenDao {
 public:
     std::string getRandom(std::string userName) {
-        return "000000";
+        return mock().actualCall("getRandom").returnStringValueOrDefault("000000");
     }
+
 };
 
 class LoggerMock : public Logger {
 public:
     void log(std::string message) {
-        logMessage = message;
+        mock().actualCall("log").withParameter("message", message.c_str());
     }
 
-    std::string logMessage;
 };
 
 TEST(AuthenticationService, IsValid) {
@@ -55,7 +94,9 @@ TEST(AuthenticationService, IsInvalidWithLogger) {
     LoggerMock loggerMock;
     AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub, loggerMock);
 
+    mock().expectOneCall("log").withParameter("message", "account: joey login failed");
+
     target.isValid("joey", "91000001");
 
-    STRCMP_EQUAL("account: joey login failed", loggerMock.logMessage.c_str());
+//    STRCMP_EQUAL("account: joey login failed", loggerMock.logMessage.c_str());
 }

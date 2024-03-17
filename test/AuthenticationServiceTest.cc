@@ -26,7 +26,7 @@ TEST_GROUP(AuthenticationService) {
 //        return "000000";
 //    }
 //};
-
+//
 //class LoggerMock : public Logger {
 //public:
 //    void log(std::string message) {
@@ -35,12 +35,6 @@ TEST_GROUP(AuthenticationService) {
 //
 //    std::string logMessage;
 //};
-
-extern "C" {
-#include "ProfileDao.h"
-#include "RsaTokenDao.h"
-#include "Logger.h"
-}
 
 class ProfileDaoStub : public ProfileDao {
 public:

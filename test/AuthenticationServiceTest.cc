@@ -1,13 +1,39 @@
 #include "CppUTest/TestHarness.h"
-#include "../main/AuthenticationService.h"
+#include "AuthenticationService.h"
 
 TEST_GROUP(AuthenticationService) {
 };
 
+class ProfileDaoStub : public ProfileDao {
+public:
+    std::string getPassword(std::string userName) {
+        return "91";
+    }
+};
+
+class RsaTokenDaoStub : public RsaTokenDao {
+public:
+    std::string getRandom(std::string userName) {
+        return "000000";
+    }
+};
+
 TEST(AuthenticationService, IsValid) {
-    AuthenticationService target;
+    ProfileDaoStub profileDaoStub;
+    RsaTokenDaoStub rsaTokenDaoStub;
+    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub);
 
     bool actual = target.isValid("joey", "91000000");
 
     CHECK_TRUE(actual);
+}
+
+TEST(AuthenticationService, IsInvalid) {
+    ProfileDaoStub profileDaoStub;
+    RsaTokenDaoStub rsaTokenDaoStub;
+    AuthenticationService target = AuthenticationService(profileDaoStub, rsaTokenDaoStub);
+
+    bool actual = target.isValid("joey", "91000001");
+
+    CHECK_FALSE(actual);
 }

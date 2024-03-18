@@ -46,7 +46,7 @@ TEST_GROUP(FakeLongLongs)
 
 static void _actualCallWithFakeLongLongParameter()
 {
-    cpputest_longlong value = {0};
+    cpputest_longlong value = cpputest_longlong(0);
 
     mock().expectOneCall("foo").withParameter("bar", 0);
     mock().actualCall("foo").withParameter("bar", value);
@@ -62,7 +62,7 @@ TEST(FakeLongLongs, ActualCallWithFakeLongLongParameterFAILS)
 
 static void _actualCallWithFakeUnsignedLongLongParameter()
 {
-    cpputest_ulonglong value = {0};
+    cpputest_ulonglong value = cpputest_ulonglong(0);
 
     mock().expectOneCall("foo").withParameter("bar", 0);
     mock().actualCall("foo").withParameter("bar", value);
@@ -106,7 +106,7 @@ TEST(FakeLongLongs, ActualCallWithFakeUnsignedLongLongReturnFAILS)
 
 static void _expectOneCallWithFakeLongLongParameter()
 {
-    cpputest_longlong value = {0};
+    cpputest_longlong value = cpputest_longlong(0);
 
     mock().expectOneCall("foo").withParameter("bar", value);
     mock().actualCall("foo").withParameter("bar", 0);
@@ -122,7 +122,7 @@ TEST(FakeLongLongs, ExpectedCallWithFakeLongLongParameterFAILS)
 
 static void _expectOneCallWithFakeUnsignedLongLongParameter()
 {
-    cpputest_ulonglong value = {0};
+    cpputest_ulonglong value = cpputest_ulonglong(0);
 
     mock().expectOneCall("foo").withParameter("bar", value);
     mock().actualCall("foo").withParameter("bar", 0);
@@ -138,7 +138,7 @@ TEST(FakeLongLongs, ExpectedCallWithFakeUnsignedLongLongParameterFAILS)
 
 static void _expectOneCallWithFakeLongLongReturn()
 {
-    cpputest_longlong value = {0};
+    cpputest_longlong value = cpputest_longlong(0);
 
     mock().expectOneCall("foo").andReturnValue(value);
     mock().actualCall("foo").returnIntValue();
@@ -154,7 +154,7 @@ TEST(FakeLongLongs, ExpectedCallWithFakeLongLongReturnFAILS)
 
 static void _expectOneCallWithFakeUnsignedLongLongReturn()
 {
-    cpputest_ulonglong value = {0};
+    cpputest_ulonglong value = cpputest_ulonglong(0);
 
     mock().expectOneCall("foo").andReturnValue(value);
     mock().actualCall("foo").returnIntValue();

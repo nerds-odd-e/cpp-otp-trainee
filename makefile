@@ -94,6 +94,7 @@ CPPUTEST_LIB_DIR = build/test-lib
 
 
 
+CPPUTEST_CXXFLAGS += -include ./test/MyOwnNewMacros.h
 
 # Some flags to quiet clang
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang"), 1)

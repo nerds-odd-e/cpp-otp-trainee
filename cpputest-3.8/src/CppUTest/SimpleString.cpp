@@ -32,6 +32,8 @@
 
 TestMemoryAllocator* SimpleString::stringAllocator_ = NULL;
 
+const size_t SimpleString::npos = (size_t)-1;
+
 TestMemoryAllocator* SimpleString::getStringAllocator()
 {
     if (stringAllocator_ == NULL)
